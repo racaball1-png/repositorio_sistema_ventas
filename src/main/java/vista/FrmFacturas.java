@@ -4,15 +4,15 @@
  */
 package vista;
 import dao.FacturaDAO;
+import modelo.Cliente;
 import modelo.DetalleFactura;
 import modelo.Factura;
-
+import modelo.Producto;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+import java.time.LocalDate;
+import java.util.ArrayList;
 /**
  *
  * @author Rigo_Acabal
@@ -24,6 +24,9 @@ public class FrmFacturas extends JInternalFrame {
     private JTable tablaProductos;
     private DefaultTableModel modeloTabla;
     private FacturaDAO facturaDAO;
+    
+    // Lista temporal para almacenar los objetos Producto agregados a la tabla
+    private ArrayList<Producto> listaProductosTabla = new ArrayList<>();
 
     public FrmFacturas() {
         super("Formulario de Facturación", true, true, true, true);
@@ -36,31 +39,28 @@ public class FrmFacturas extends JInternalFrame {
         JPanel panelCabecera = new JPanel(new GridLayout(2, 4, 10, 10));
         panelCabecera.setBorder(BorderFactory.createTitledBorder("Datos de la Factura"));
 
-        // Fila 1 (4 elementos)
         panelCabecera.add(new JLabel("No. Factura:"));
-        txtNumero = new JTextField("FAC-00" + (facturaDAO.listar().size() + 1));
+        int idSiguiente = facturaDAO.listar().size() + 1;
+        txtNumero = new JTextField(String.valueOf(idSiguiente));
         txtNumero.setEditable(false);
         panelCabecera.add(txtNumero);
 
-        panelCabecera.add(new JLabel("Fecha:"));
-        txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+        panelCabecera.add(new JLabel("Fecha (yyyy-MM-dd):"));
+        txtFecha = new JTextField(LocalDate.now().toString());
         panelCabecera.add(txtFecha);
 
-        // Fila 2 (4 elementos para completar las 8 casillas requeridas)
         panelCabecera.add(new JLabel("Cliente:"));
         txtCliente = new JTextField();
         panelCabecera.add(txtCliente);
 
-        // Espaciadores vacíos para mantener la estructura de 2x4
         panelCabecera.add(new JLabel("")); 
         panelCabecera.add(new JLabel("")); 
 
         this.add(panelCabecera, BorderLayout.NORTH);
 
-        // --- PANEL CENTRO: INGRESO DE PRODUCTOS Y TABLA ---
+        // --- PANEL CENTRO ---
         JPanel panelCentro = new JPanel(new BorderLayout(5, 5));
 
-        // Subpanel para entrada del ítem
         JPanel panelInputProducto = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelInputProducto.setBorder(BorderFactory.createTitledBorder("Agregar Artículo"));
 
@@ -77,8 +77,7 @@ public class FrmFacturas extends JInternalFrame {
         panelInputProducto.add(txtCantidad);
         panelInputProducto.add(btnAgregar);
 
-        // Tabla de ítems
-        modeloTabla = new DefaultTableModel(new String[]{"Producto", "Precio", "Cantidad", "Subtotal"}, 0);
+        modeloTabla = new DefaultTableModel(new String[]{"ID", "Producto", "Precio", "Cantidad", "Subtotal"}, 0);
         tablaProductos = new JTable(modeloTabla);
         JScrollPane scrollTabla = new JScrollPane(tablaProductos);
 
@@ -87,7 +86,7 @@ public class FrmFacturas extends JInternalFrame {
 
         this.add(panelCentro, BorderLayout.CENTER);
 
-        // --- PANEL SUR: TOTALES Y BOTONES DE ACCIÓN ---
+        // --- PANEL SUR ---
         JPanel panelSur = new JPanel(new BorderLayout());
 
         JPanel panelTotales = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -111,7 +110,6 @@ public class FrmFacturas extends JInternalFrame {
 
         this.add(panelSur, BorderLayout.SOUTH);
 
-        // --- EVENTOS DE BOTONES ---
         btnAgregar.addActionListener(e -> agregarProductoATabla());
         btnEliminar.addActionListener(e -> eliminarProductoDeTabla());
         btnGuardar.addActionListener(e -> guardarFactura());
@@ -119,17 +117,22 @@ public class FrmFacturas extends JInternalFrame {
 
     private void agregarProductoATabla() {
         try {
-            String prod = txtProducto.getText().trim();
+            String prodNombre = txtProducto.getText().trim();
             double precio = Double.parseDouble(txtPrecio.getText().trim());
             int cantidad = Integer.parseInt(txtCantidad.getText().trim());
 
-            if (prod.isEmpty()) {
+            if (prodNombre.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Ingrese el nombre del producto.");
                 return;
             }
 
+            // Crear objeto Producto compatible con el Diagrama UML
+            int idProd = listaProductosTabla.size() + 1;
+            Producto p = new Producto(idProd, prodNombre, precio, 100);
+            listaProductosTabla.add(p);
+
             double subtotal = precio * cantidad;
-            modeloTabla.addRow(new Object[]{prod, precio, cantidad, subtotal});
+            modeloTabla.addRow(new Object[]{p.getIdProducto(), p.getNombre(), precio, cantidad, subtotal});
 
             limpiarCamposProducto();
             actualizarTotales();
@@ -142,6 +145,7 @@ public class FrmFacturas extends JInternalFrame {
         int filaSeleccionada = tablaProductos.getSelectedRow();
         if (filaSeleccionada >= 0) {
             modeloTabla.removeRow(filaSeleccionada);
+            listaProductosTabla.remove(filaSeleccionada);
             actualizarTotales();
         } else {
             JOptionPane.showMessageDialog(this, "Seleccione una fila para eliminar.");
@@ -151,15 +155,15 @@ public class FrmFacturas extends JInternalFrame {
     private void actualizarTotales() {
         double subtotalAcumulado = 0;
         for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-            subtotalAcumulado += (double) modeloTabla.getValueAt(i, 3);
+            subtotalAcumulado += (double) modeloTabla.getValueAt(i, 4);
         }
         lblSubtotal.setText(String.format("Subtotal: $%.2f", subtotalAcumulado));
         lblTotal.setText(String.format("TOTAL: $%.2f", subtotalAcumulado));
     }
 
     private void guardarFactura() {
-        String cliente = txtCliente.getText().trim();
-        if (cliente.isEmpty()) {
+        String nombreCliente = txtCliente.getText().trim();
+        if (nombreCliente.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Debe ingresar el nombre del cliente.");
             return;
         }
@@ -169,20 +173,32 @@ public class FrmFacturas extends JInternalFrame {
             return;
         }
 
-        // Crear objeto Factura
-        Factura nuevaFactura = new Factura(txtNumero.getText(), cliente, txtFecha.getText());
+        try {
+            int idFactura = Integer.parseInt(txtNumero.getText());
+            LocalDate fecha = LocalDate.parse(txtFecha.getText());
+            
+            // Instanciar objeto Cliente (derivado de Persona en el UML)
+            Cliente clienteObj = new Cliente(1, nombreCliente, "CF", "00000000", "Ciudad");
 
-        for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-            String prod = (String) modeloTabla.getValueAt(i, 0);
-            double prec = (double) modeloTabla.getValueAt(i, 1);
-            int cant = (int) modeloTabla.getValueAt(i, 2);
-            nuevaFactura.agregarDetalle(new DetalleFactura(prod, prec, cant));
-        }
+            // Instanciar Factura con los tipos correctos del UML
+            Factura nuevaFactura = new Factura(idFactura, fecha, clienteObj);
 
-        // Guardar vía DAO en el ArrayList en memoria
-        if (facturaDAO.guardar(nuevaFactura)) {
-            JOptionPane.showMessageDialog(this, "Factura guardada exitosamente en memoria.");
-            this.dispose(); // Cerrar el formulario tras guardar
+            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                Producto p = listaProductosTabla.get(i);
+                int cant = (int) modeloTabla.getValueAt(i, 3);
+                double prec = (double) modeloTabla.getValueAt(i, 2);
+
+                // Instanciar DetalleFactura con tipos UML
+                DetalleFactura detalle = new DetalleFactura(p, cant, prec);
+                nuevaFactura.agregarDetalle(detalle);
+            }
+
+            if (facturaDAO.guardar(nuevaFactura)) {
+                JOptionPane.showMessageDialog(this, "Factura guardada exitosamente en memoria.");
+                this.dispose();
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al procesar la factura: " + ex.getMessage());
         }
     }
 

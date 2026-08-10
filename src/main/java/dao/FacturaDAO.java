@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 /**
  *
- * @author acabi
+ * @author Rigo_Acabal
  */
 public class FacturaDAO {
  

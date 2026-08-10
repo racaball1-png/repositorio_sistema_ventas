@@ -10,18 +10,25 @@ package modelo;
  */
 
 public class DetalleFactura {
-    private String producto;
-    private double precio;
+    private Producto producto;
     private int cantidad;
+    private double precioUnitario;
 
-    public DetalleFactura(String producto, double precio, int cantidad) {
+    public DetalleFactura(Producto producto, int cantidad, double precioUnitario) {
         this.producto = producto;
-        this.precio = precio;
         this.cantidad = cantidad;
+        this.precioUnitario = precioUnitario;
     }
 
-    public String getProducto() { return producto; }
-    public double getPrecio() { return precio; }
+    public double calcularSubtotal() {
+        return cantidad * precioUnitario;
+    }
+
+    // Getters y Setters
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { this.producto = producto; }
     public int getCantidad() { return cantidad; }
-    public double getSubtotal() { return precio * cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public double getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(double precioUnitario) { this.precioUnitario = precioUnitario; }
 }

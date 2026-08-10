@@ -3,60 +3,60 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package vista;
-
+import javax.swing.*;
 /**
  *
  * @author Rigo_Acabal
  */
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 
 public class FrmPrincipal extends JFrame {
-
     private JDesktopPane desktopPane;
 
     public FrmPrincipal() {
-        super("Sistema de Ventas - Menú MDI");
-        this.setSize(1024, 768);
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        super("Sistema de Ventas - Formulario Contenedor MDI");
+        setSize(1024, 768);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         desktopPane = new JDesktopPane();
-        this.setContentPane(desktopPane);
+        setContentPane(desktopPane);
 
         JMenuBar menuBar = new JMenuBar();
+
+        // Menú Mantenimiento (Catalogos)
+        JMenu menuMantenimiento = new JMenu("Mantenimiento");
+        JMenuItem itemClientes = new JMenuItem("Clientes");
+        JMenuItem itemProductos = new JMenuItem("Productos");
+
+        itemClientes.addActionListener(e -> abrirFormulario(new FrmCliente()));
+        itemProductos.addActionListener(e -> abrirFormulario(new FrmProducto()));
+
+        menuMantenimiento.add(itemClientes);
+        menuMantenimiento.add(itemProductos);
+
+        // Menú Ventas
         JMenu menuVentas = new JMenu("Ventas");
         JMenuItem itemFacturacion = new JMenuItem("Facturación");
-
-        itemFacturacion.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirFormularioFactura();
-            }
-        });
-
+        itemFacturacion.addActionListener(e -> abrirFormulario(new FrmFacturas()));
         menuVentas.add(itemFacturacion);
+
+        menuBar.add(menuMantenimiento);
         menuBar.add(menuVentas);
-        this.setJMenuBar(menuBar);
+        setJMenuBar(menuBar);
     }
 
-    private void abrirFormularioFactura() {
-        FrmFacturas frmFactura = new FrmFacturas();
-        
-        desktopPane.add(frmFactura);
-        frmFactura.setVisible(true);
-        
+    private void abrirFormulario(JInternalFrame iframe) {
+        desktopPane.add(iframe);
+        iframe.setVisible(true);
         try {
-            frmFactura.setSelected(true);
-        } catch (java.beans.PropertyVetoException ex) {
-            ex.printStackTrace();
+            iframe.setSelected(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new FrmPrincipal().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new FrmPrincipal().setVisible(true));
     }
 }
