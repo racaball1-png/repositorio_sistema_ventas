@@ -25,7 +25,6 @@ public class FrmFacturas extends JInternalFrame {
     private DefaultTableModel modeloTabla;
     private FacturaDAO facturaDAO;
     
-    // Lista temporal para almacenar los objetos Producto agregados a la tabla
     private ArrayList<Producto> listaProductosTabla = new ArrayList<>();
 
     public FrmFacturas() {
@@ -35,7 +34,6 @@ public class FrmFacturas extends JInternalFrame {
 
         this.setLayout(new BorderLayout(10, 10));
 
-        // --- PANEL NORTE: CABECERA DE FACTURA ---
         JPanel panelCabecera = new JPanel(new GridLayout(2, 4, 10, 10));
         panelCabecera.setBorder(BorderFactory.createTitledBorder("Datos de la Factura"));
 
@@ -58,7 +56,6 @@ public class FrmFacturas extends JInternalFrame {
 
         this.add(panelCabecera, BorderLayout.NORTH);
 
-        // --- PANEL CENTRO ---
         JPanel panelCentro = new JPanel(new BorderLayout(5, 5));
 
         JPanel panelInputProducto = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -86,7 +83,6 @@ public class FrmFacturas extends JInternalFrame {
 
         this.add(panelCentro, BorderLayout.CENTER);
 
-        // --- PANEL SUR ---
         JPanel panelSur = new JPanel(new BorderLayout());
 
         JPanel panelTotales = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -126,7 +122,6 @@ public class FrmFacturas extends JInternalFrame {
                 return;
             }
 
-            // Crear objeto Producto compatible con el Diagrama UML
             int idProd = listaProductosTabla.size() + 1;
             Producto p = new Producto(idProd, prodNombre, precio, 100);
             listaProductosTabla.add(p);
@@ -177,10 +172,8 @@ public class FrmFacturas extends JInternalFrame {
             int idFactura = Integer.parseInt(txtNumero.getText());
             LocalDate fecha = LocalDate.parse(txtFecha.getText());
             
-            // Instanciar objeto Cliente (derivado de Persona en el UML)
             Cliente clienteObj = new Cliente(1, nombreCliente, "CF", "00000000", "Ciudad");
 
-            // Instanciar Factura con los tipos correctos del UML
             Factura nuevaFactura = new Factura(idFactura, fecha, clienteObj);
 
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
@@ -188,7 +181,6 @@ public class FrmFacturas extends JInternalFrame {
                 int cant = (int) modeloTabla.getValueAt(i, 3);
                 double prec = (double) modeloTabla.getValueAt(i, 2);
 
-                // Instanciar DetalleFactura con tipos UML
                 DetalleFactura detalle = new DetalleFactura(p, cant, prec);
                 nuevaFactura.agregarDetalle(detalle);
             }
