@@ -38,7 +38,7 @@ public class FrmFacturas extends JInternalFrame {
         panelCabecera.setBorder(BorderFactory.createTitledBorder("Datos de la Factura"));
 
         panelCabecera.add(new JLabel("No. Factura:"));
-        int idSiguiente = facturaDAO.listar().size() + 1;
+        int idSiguiente = facturaDAO.obtenerSiguienteId();
         txtNumero = new JTextField(String.valueOf(idSiguiente));
         txtNumero.setEditable(false);
         panelCabecera.add(txtNumero);
@@ -186,10 +186,13 @@ public class FrmFacturas extends JInternalFrame {
             }
 
             if (facturaDAO.guardar(nuevaFactura)) {
-                JOptionPane.showMessageDialog(this, "Factura guardada exitosamente en memoria.");
-                this.dispose();
-            }
-        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Factura guardada exitosamente en MySQL.");
+            this.dispose();
+            } else {
+            JOptionPane.showMessageDialog(this, "No se pudo guardar la factura en la base de datos.", "Error de Guardado", JOptionPane.ERROR_MESSAGE);
+}
+        }   
+         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al procesar la factura: " + ex.getMessage());
         }
     }
